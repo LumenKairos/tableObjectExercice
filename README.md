@@ -78,7 +78,7 @@ Le tableau de l'exercice précédent doit être repris et amélioré.
 
 L'objectif de cet exercice est de permettre de créer des filtres
 
-Propriétés privées : array de string
+Propriétés privées : array de string  
 _hiddenCol, _visibleCol, _hiddenRow, _visibleRow
 
 Nouvelles methodes :
