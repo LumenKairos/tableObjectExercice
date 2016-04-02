@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mon tableau</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <style>
+    h1 {
+      color: green;
+    }
+    th, td {
+      border: 1px solid black;
+      padding: 10px;
+      }
+
+    </style>
+  </head>
+  <body>
+    <h1>Mon TABLEAU</h1>
+    <div id="tableau"></div>
+
+    <script  type="text/babel">
+      var Tableau = Tableau || {};
+      var Tableau = (function () {
+        var _Tableau = function _Tableau (name, data, colHeaders, rowHeaders) {
+          console.log("I am a Table");
+          var _name = name || 'myTable';
+          var _data = data || [[""]];
+          var _colHeaders = colHeaders || [""];
+          var _rowHeaders = rowHeaders || [""];
+          
+          this.sayName = function() {
+            console.log(_name);
+          };
+          this.getHeaders = function() {
+            console.log("colHeaders: " + _colHeaders + " rowHeaders: " + _rowHeaders);
+          };
+          this.getData = function() {
+            console.log(_data);
+          };
+          this.addRow = function(rowName) {
+            var tmpRow = [];
+            _rowHeaders.push(rowName);
+            for (var j = 0; j < _colHeaders.length ; j++) {
+              if(j === 0) {
+                tmpRow.push(rowName);
+              } else {
+                tmpRow.push("");
+              }
+            }
+            _data.push(tmpRow);
+          };
+          this.addCol = function(colName) {
+            _colHeaders.push(colName);
+            for (var i = 0; i < _rowHeaders.length; i++) {
+              if(i === 0) {
+                _data[0].push(colName);
+              } else {
+                _data[i].push("");
+              }
+            }
+          };
+          this.deleteRow = function(rowName) {
+            for (var i = 0; i < _rowHeaders.length; i++) {
+              if (_data[i][0] === rowName) {
+                _data.splice(i,1);
+                _rowHeaders.splice(i,1);
+                i = _rowHeaders.length;
+              }
+            }
+          };
+          this.deleteCol = function(colName) {
+            var index;
+            for (var j = 0; j < _colHeaders.length ; j++) {
+              if(_colHeaders[j] === colName) {
+                index = j;
+              }
+            }
+            for (var i = 0; i < _rowHeaders.length; i++) {
+                  _data[i].splice(index,1);
+            }
+            _colHeaders.splice(index,1);
+
+          };
+        };
+        
+        return {
+          create: function (name) {
+            var tmpsTab = new _Tableau(name);
+            return tmpsTab;
+          }
+        }
+      
+      })();
+      
+      var tableau = Tableau.create("mon tableau",[[""]],[""],[""]);
+      tableau.sayName();
+      tableau.addRow('firstRow');
+      tableau.addRow('secundRow');
+      tableau.addRow('thirdRow');
+      tableau.addCol('firstCol');
+      tableau.addCol('secundCol');
+      tableau.addCol('thirdCol');
+      tableau.deleteRow('secundRow');
+      tableau.deleteCol('secundCol');
+      tableau.getHeaders();
+      tableau.getData();
+      
+      var app;
+      var App = React.createClass({
+        render: function() {
+          return (
+            <div>I am an App !</div>
+          );
+        }
+      });
+    
+      app = ReactDOM.render(
+        <App/>, document.getElementById('tableau')
+      );
+    
+    </script>
+  </body>
+</html>
