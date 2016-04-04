@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mon tableau</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <style>
+    h1 {
+      color: green;
+    }
+    th, td {
+      border: 1px solid black;
+      padding: 10px;
+      }
+
+    </style>
+  </head>
+  <body>
+    <h1>Mon TABLEAU</h1>
+    <div id="tableau"></div>
+
+    <script  type="text/babel">
+      var Tableau = Tableau || {};
+      var Tableau = (function () {
+        var _Tableau = function _Tableau (name, data, colHeaders, rowHeaders) {
+          console.log("I am a Table");
+          var _name = name || 'myTable';
+          var _data = data || [[{value: "", visible:true}]];
+          var _colHeaders = colHeaders || [""];
+          var _rowHeaders = rowHeaders || [""];
+          var _hiddenCols = [];
+          var _visibleCols = colHeaders || [""];
+          var _hiddenRows = [];
+          var _visibleRows = [];
+          var _visibleData = []; ;
+          var visibleRows = rowHeaders || [""];
+          var row = _rowHeaders.length || 1;
+          var col = _colHeaders.length || 1;
+          var size = row * col || 1;
+          var filterData = function() {
+                for(var i = 0; i < _data.length; i++) {
+                  _visibleData[i] = _data[i].filter(function(item,index) {
+                      return item.visible;
+                  });
+                  if(_visibleData[i].length === 0) {
+                  _visibleData.splice(i,1);
+                }
+                }
+                
+                
+             };
+          
+          this.row = function() {console.log(row);};
+          this.col = function() {console.log(col);};
+          this.size = function() {console.log(size);};
+          
+          this.getTable = function() {
+             _visibleData = [];
+              filterData();
+
+            return {
+              tableName: _name,
+              rowHeaders: _rowHeaders,
+              colHeaders: _colHeaders,
+              data: _data,
+              visibleData: _visibleData
+            };
+          };
+          this.addRow = function(rowName) {
+            var tmpRow = [];
+            var tmpObj;
+            tmpRow = _colHeaders.map(function(item, index) {
+              if(index === 0) {
+                tmpObj = new Tableau.Cellule(rowName);
+                return tmpObj;
+                return tmpRow.push({value: rowName})
+              } else {
+                tmpObj = new Tableau.Cellule();
+                return tmpObj;
+              }
+              delete tmpObj.value;
+            });
+            _rowHeaders.push(rowName);
+            _visibleRows.push(rowName);
+            _data.push(tmpRow);
+          };
+          this.addCol = function(colName) {
+            var tmpObj;
+            
+            for (var i = 0; i < _rowHeaders.length; i++) {
+              if(i === 0) {
+                tmpObj = new Tableau.Cellule(colName);
+                _data[0].push(tmpObj);
+              } else {
+                tmpObj = new Tableau.Cellule();
+                _data[i].push(tmpObj);
+              }
+            }
+            delete tmpObj.value;
+            _colHeaders.push(colName);
+            _visibleCols.push(colName);
+          };
+          this.deleteRow = function(rowName) {
+            for (var i = 0; i < _rowHeaders.length; i++) {
+              if (_data[i][0].value === rowName) {
+                for (var j = 0; j < _colHeaders.length; j++) {
+                  delete _data[i][j].value;
+                }
+                _data.splice(i,1);
+                _rowHeaders.splice(i,1);
+                i = _rowHeaders.length;
+              }
+            }
+            for(var k = 0, length = _visibleRows.length; k< length; k++) {
+              if(_visibleRows[k] === rowName) {
+                _visibleRows.splice(k,1);
+              }
+            }
+            for(var l = 0, len = _hiddenRows.length; l< len; l++) {
+              if(_hiddenRows[l] === rowName) {
+                _hiddenRows.splice(l,1);
+              }
+            }
+          };
+          this.deleteCol = function(colName) {
+            var index;
+            for (var j = 0; j < _colHeaders.length ; j++) {
+              if(_colHeaders[j] === colName) {
+                index = j;
+              }
+            }
+            for (var i = 0; i < _rowHeaders.length; i++) {
+                  delete _data[i][index].value;
+                  _data[i].splice(index,1);
+            }
+            _colHeaders.splice(index,1);
+            for(var k = 0, length = _visibleCols.length; k< length; k++) {
+              if(_visibleCols[k] === colName) {
+                _visibleCols.splice(k,1);
+              }
+            }
+            for(var l = 0, len = _hiddenCols.length; l< len; l++) {
+              if(_hiddenCols[l] === colName) {
+                _hiddenCols.splice(l,1);
+              }
+            }
+          };
+          this.hideRow = function(rowName) {
+            var index = 0;
+            for(var k = 0, length = _visibleRows.length; k< length; k++) {
+              if(_visibleRows[k] === rowName){
+                _visibleRows.splice(k,1)
+              }
+            }
+            for(var i = 0; i < _data.length; i++) {
+              if(_data[i][0].value === rowName) {
+                for(var j = 0, len = _colHeaders.length; j < len; j++) {
+                  _data[i][j].visible = false;
+                  for(var m = j; m > 0; m--) {
+                    if(_data[i][m].visible === false) {
+                      for(var l = 0; l < _hiddenRows.length; l++) {
+                        if(_hiddenRows[l] ===_data[i][m].value) {
+                          _hiddenRows.splice(l,0,rowName);
+                        }
+                      }
+                    }
+                  }
+                }
+                i = _data.length;
+              }
+            }
+          };
+          this.showRow = function(rowName) {
+            for(var k = 0, length = _hiddenRows.length; k< length; k++) {
+              if(_hiddenRows[k] === rowName){
+                _hiddenRows.splice(k,1)
+              }
+            }
+            for(var i = 0; i < _data.length; i++) {
+              if(_data[i][0].value === rowName) {
+                for(var j = 0, len = _colHeaders.length; j < len; j++) {
+                  _data[i][j].visible = true;
+                  for(var m = j; m > 0; m--) {
+                    if(_data[i][m].visible === true) {
+                      for(var l = 0; l < _visibleRows.length; l++) {
+                        if(_visibleRows[l] ===_data[i][m].value) {
+                          _visibleRows.splice(l,0,rowName);
+                        }
+                      }
+                    }
+                  }
+                }
+                i = _data.length;
+              }
+            }
+          };
+          this.hideCol = function(colName) {
+            var index = 0;
+            for(var k = 0, length = _visibleCols.length; k< length; k++) {
+              if(_visibleCols[k] === colName){
+                _visibleCols.splice(k,1)
+              }
+            }
+
+            for(var j = 0, len = _colHeaders.length; j < len; j++) {
+              if(_data[0][j].value === colName) {
+                index = j;
+              }
+            }
+            for(var i = 0; i < _data.length; i++) {
+              _data[i][index].visible = false;
+            }
+              for(var m = index; m >= 0; m--) {
+                if(_data[0][m].visible === false) {
+                  for(var l = 0; l < _hiddenCols.length; l++) {
+                        if(_hiddenCols[l] ===_data[0][m].value) {
+                          _hiddenCols.splice(l,0,colName);
+                        }
+                      }
+                  m = -1;
+                } else if (m = 0) {
+                  _hiddenCols.push(colName);
+                }
+              }
+          };
+          this.showCol = function(colName) {
+            var index = 0;
+            for(var k = 0, length = _hiddenCols.length; k< length; k++) {
+              if(_hiddenCols[k] === colName){
+                _hiddenCols.splice(k,1)
+              }
+            }
+
+            for(var j = 0, len = _colHeaders.length; j < len; j++) {
+              if(_data[0][j].value === colName) {
+                index = j;
+              }
+            }
+            for(var i = 0; i < _data.length; i++) {
+              _data[i][index].visible = true;
+            }
+              for(var m = index; m >= 0; m--) {
+                if(_data[0][m].visible === true) {
+                  for(var l = 0; l < _visibleCols.length; l++) {
+                        if(_visibleCols[l] ===_data[0][m].value) {
+                          _visibleCols.splice(l,0,colName);
+                        }
+                      }
+                  m = -1;
+                } else if (m = 0) {
+                  _hiddenCols.push(colName);
+                }
+              }
+          };
+        };
+        
+        return {
+          create: function(name) {
+            var tmpsTab = new _Tableau(name);
+            return tmpsTab;
+          },
+          Cellule: function Cellule(value) {
+            this.value = value || "";
+            this.visible = true;
+          }
+        }
+      
+      })();
+      
+      var tableau = Tableau.create("mon tableau",[[""]],[""],[""]);
+      tableau.addRow('firstRow');
+      tableau.addRow('secundRow');
+      tableau.addCol('firstCol');
+      tableau.addCol('secundCol');
+      tableau.row();
+      tableau.hideCol('firstCol');
+      tableau.showCol('firstCol');
+      tableau.hideRow('firstRow');
+      tableau.showRow('firstRow');
+
+      console.log(tableau.getTable());
+      
+      var app;
+      var App = React.createClass({
+        render: function() {
+          return (
+            <div>I am an App !</div>
+          );
+        }
+      });
+    
+      app = ReactDOM.render(
+        <App/>, document.getElementById('tableau')
+      );
+    
+    </script>
+  </body>
+</html>
