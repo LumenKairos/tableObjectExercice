@@ -28,7 +28,7 @@
         var _Tableau = function _Tableau (name, data, colHeaders, rowHeaders) {
           console.log("I am a Table");
           var _name = name || 'myTable';
-          var _data = data || [[{value: "", visible:true}]];
+          var _data = data || [[{value: "", visible: true}]];
           var _colHeaders = colHeaders || [""];
           var _rowHeaders = rowHeaders || [""];
           var _hiddenCols = [];
@@ -69,33 +69,53 @@
               visibleData: _visibleData
             };
           };
+          this.editCell = function(row, col, value) {
+            _data[row][col].value = value
+          };
           this.addRow = function(rowName) {
             var tmpRow = [];
             var tmpObj;
             tmpRow = _colHeaders.map(function(item, index) {
               if(index === 0) {
-                tmpObj = new Tableau.Cellule(rowName);
-                return tmpObj;
-                return tmpRow.push({value: rowName})
-              } else {
-                tmpObj = new Tableau.Cellule();
-                return tmpObj;
+                if(!_data[0][index].visible) {
+                  tmpObj = new Tableau.Cellule(rowName);
+                  tmpObj.visible = false;
+                  return tmpObj;
+                } else {
+                  tmpObj = new Tableau.Cellule(rowName);
+                  return tmpObj;
+                }
+              }else {
+                if(!_data[0][index].visible) {
+                  tmpObj = new Tableau.Cellule();
+                  tmpObj.visible = false;
+                  return tmpObj;
+                }else {
+                  tmpObj = new Tableau.Cellule();
+                  return tmpObj;
+                }
+                
               }
-              delete tmpObj.value;
-            });
+                delete tmpObj.value;
+              });
             _rowHeaders.push(rowName);
             _visibleRows.push(rowName);
             _data.push(tmpRow);
           };
           this.addCol = function(colName) {
             var tmpObj;
-            
             for (var i = 0; i < _rowHeaders.length; i++) {
               if(i === 0) {
                 tmpObj = new Tableau.Cellule(colName);
+                if(!_data[i][0].visible) {
+                  tmpObj.visible = false;
+                }
                 _data[0].push(tmpObj);
               } else {
                 tmpObj = new Tableau.Cellule();
+                if(!_data[i][0].visible) {
+                  tmpObj.visible = false;
+                }
                 _data[i].push(tmpObj);
               }
             }
@@ -270,29 +290,154 @@
       
       })();
       
-      var tableau = Tableau.create("mon tableau",[[""]],[""],[""]);
+      var tableau = Tableau.create("mon tableau");
       tableau.addRow('firstRow');
       tableau.addRow('secundRow');
       tableau.addCol('firstCol');
       tableau.addCol('secundCol');
-      tableau.row();
-      tableau.hideCol('firstCol');
-      tableau.showCol('firstCol');
-      tableau.hideRow('firstRow');
-      tableau.showRow('firstRow');
-
-      console.log(tableau.getTable());
       
+
+      var TABLECONTENT = tableau.getTable().visibleData;
+      console.log(TABLECONTENT);
       var app;
+      
+      
+      var Cell = React.createClass({
+        handleChange: function(event) {
+          var rowIndex = this.props.rowIndex;
+          var cellIndex = this.props.cellIndex
+          var cellContent = event.target.value;
+          tableau.editCell(rowIndex, cellIndex, cellContent);
+          TABLECONTENT = tableau.getTable().visibleData;
+          console.log(TABLECONTENT);
+          app.setState({
+            tableContent: TABLECONTENT
+          });
+        },
+        deleteRow: function() {
+          var rowName = this.props.value;
+          tableau.deleteRow(rowName);
+          TABLECONTENT = tableau.getTable().visibleData;
+          console.log(TABLECONTENT);
+          app.setState({
+            tableContent: TABLECONTENT
+          });
+        },
+        deleteCol: function() {
+          var colName = this.props.value;
+          tableau.deleteCol(colName);
+          TABLECONTENT = tableau.getTable().visibleData;
+          console.log(TABLECONTENT);
+          app.setState({
+            tableContent: TABLECONTENT
+          });
+        },
+        hideRow: function() {
+          var rowName = this.props.value;
+          tableau.hideRow(rowName);
+          TABLECONTENT = tableau.getTable().visibleData;
+          console.log(TABLECONTENT);
+          app.setState({
+            tableContent: TABLECONTENT
+          });
+        },
+        hideCol: function() {
+          var colName = this.props.value;
+          tableau.hideCol(colName);
+          TABLECONTENT = tableau.getTable().visibleData;
+          console.log(TABLECONTENT);
+          app.setState({
+            tableContent: TABLECONTENT
+          });
+        },
+        render: function() {
+          if(this.props.cellIndex === 0 && this.props.rowIndex !== 0){
+            return (
+              <td>
+                <i className="fa fa-times" onClick={this.deleteRow}></i>
+                <input type="text" value={this.props.value} onChange={this.handleChange}/>
+                <i className="fa fa-lock" onClick={this.hideRow}></i>
+              </td>
+            );
+          }else if ( this.props.rowIndex === 0 && this.props.cellIndex !== 0) {
+            return (
+              <td>
+                <i className="fa fa-times" onClick={this.deleteCol}></i>
+                <input type="text" value={this.props.value} onChange={this.handleChange}/>
+                <i className="fa fa-lock" onClick={this.hideCol}></i>
+              </td>
+            );
+          }else {
+            return (
+              <td>
+                <input type="text" value={this.props.value} onChange={this.handleChange}/>
+              </td>
+            );
+          }
+        }
+      });
+      
+      
+      var Row = React.createClass({
+        render: function() {
+          var self = this;
+          return (
+            <tr>
+              {this.props.row.map(function(cell,index) {
+                return (
+                  <Cell key={index} value={cell.value} rowIndex={self.props.rowIndex} cellIndex={index}/>
+                );
+              })}
+            </tr>
+          );
+        }
+      });
+      
       var App = React.createClass({
+        getInitialState: function () {
+          return {
+            tableContent: TABLECONTENT || [[]]
+          }
+        },
+        addRow: function () {
+          var title = prompt("Enter the row title");
+          tableau.addRow(title);
+          TABLECONTENT = tableau.getTable().visibleData;
+          console.log(TABLECONTENT);
+           this.setState({
+            tableContent:TABLECONTENT
+          })
+        },
+        addCol: function () {
+          var title = prompt("Enter the col title");
+          tableau.addCol(title);
+          TABLECONTENT = tableau.getTable().visibleData;
+          console.log(TABLECONTENT);
+          this.setState({
+            tableContent:TABLECONTENT
+          })
+        },
         render: function() {
           return (
-            <div>I am an App !</div>
+            <div>
+              <table>
+                <tbody>
+                  {this.state.tableContent.map(function (row, index) {
+                    return (<Row key={index} row={row} rowIndex={index}/>);
+                  })}
+                </tbody>
+              </table>
+              <button onClick={this.addRow}>Add a row</button>
+              <button onClick={this.addCol}>Add a col</button>
+              <button onClick={function() {localStorage.setItem("MonTableau", JSON.stringify(TABLECONTENT));}}>Save</button>
+          <button onClick={function() {TABLECONTENT = JSON.parse(localStorage.getItem("MonTableau")); app.setState({tableContent: TABLECONTENT})}}>Load</button>
+          <button onClick={function() {TABLECONTENT = tableau.getTable().data; app.setState({tableContent: TABLECONTENT});}}>Full Table</button>
+            </div>
           );
         }
       });
     
-      app = ReactDOM.render(
+      var app = ReactDOM.render(
         <App/>, document.getElementById('tableau')
       );
     
